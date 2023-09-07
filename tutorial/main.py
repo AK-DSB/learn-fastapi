@@ -1,32 +1,25 @@
-from datetime import datetime, time, timedelta
-from typing import Annotated
-from uuid import UUID
-
-from fastapi import Body, FastAPI
+from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
 
 
-@app.put('/items/{item_id}')
-async def read_items(
-    item_id: UUID,
-    start_datetime: Annotated[datetime | None, Body()] = None,
-    end_datetime: Annotated[datetime | None, Body()] = None,
-    repeat_at: Annotated[time | None, Body()] = None,
-    process_after: Annotated[timedelta | None, Body()] = None
-):
-    start_process = start_datetime + process_after
-    duration = end_datetime - start_process
-    print(start_process)
-    print(type(start_process))
-    print(duration)
-    print(type(duration))
-    return {
-        "item_id": item_id,
-        "start_datetime": start_datetime,
-        "end_datetime": end_datetime,
-        "repeat_at": repeat_at,
-        "process_after": process_after,
-        "start_process": start_process,
-        "duration": duration,
-    }
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: list[str] = []
+
+
+@app.post('/items/')
+async def create_item(item: Item) -> Item:
+    return item
+
+
+@app.get('/items/')
+async def read_items() -> list[Item]:
+    return [
+        Item(name="Portal Gun", price=42.0),
+        Item(name="Plumbus", price=32.0),
+    ]

@@ -1,10 +1,22 @@
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, Query, Request
 from pydantic import BaseModel
 
 
 app = FastAPI()
+
+
+@app.get('/items/params')
+async def read_params_items(
+    request: Request,
+    qs: Annotated[list[str] | None, Query()] = None
+):
+    print(request.query_params)
+    print(request.query_params.get('qs'))
+    print(request.query_params.getlist('qs'))
+    print(qs)
+    return {'qs': qs}
 
 
 @app.get('/items_annotated/')
