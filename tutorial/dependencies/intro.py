@@ -37,5 +37,5 @@ async def read_items(commons: CommonsDep):
 
 
 @app.get('/users/common/')
-async def read_Users(commons: CommonParameter = Depends(CommonParameter)):
+async def read_users(commons: CommonParameter = Depends(CommonParameter)):
     return commons
