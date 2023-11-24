@@ -1,5 +1,7 @@
+import typing
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse, HTMLResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, ORJSONResponse, HTMLResponse, Response, StreamingResponse
+import orjson
 
 app = FastAPI()
 
@@ -47,5 +49,28 @@ async def fake_video_streamer():
 
 
 @app.get('/')
-async def main():
-    return StreamingResponse(fake_video_streamer())
+async def main(return_video: bool = False, return_file: bool = False):
+    if return_video:
+        return StreamingResponse(fake_video_streamer(), media_type='video/mp4')
+    some_file_path = "large-video-file.mp4"
+
+    if return_file:
+        return FileResponse(some_file_path)
+
+    def iterfile():
+        with open(some_file_path, mode='r') as f:
+            yield from f
+    return StreamingResponse(iterfile(), media_type='video/mp4')
+
+
+class CustomORJSONResponse(Response):
+    media_type = 'application/json'
+
+    def render(self, content: typing.Any) -> bytes:
+        assert orjson is not None, "orjson must be installed to use ORJSONResponse"
+        return orjson.dumps(content, option=orjson.OPT_UTC_Z)
+
+
+@app.get('/orjson/', response_class=CustomORJSONResponse)
+def read_orjson():
+    return [{'item_id': 'Foo'}]
